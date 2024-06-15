@@ -27,6 +27,9 @@ class MyGUI:
         self.compressed_file_label = tk.Label(self.root, text="")
         self.compressed_file_label.pack(padx=10, pady=10)
 
+        self.ratio_label = tk.Label(self.root, text="")
+        self.ratio_label.pack(padx=10, pady=10)
+
         self.image_frame = tk.Frame(self.root)
         self.image_frame.pack(padx=10, pady=10)
 
@@ -50,6 +53,7 @@ class MyGUI:
         )
         if self.file_name:
             self.file_label.config(text=self.file_name)
+            self.reset_image_frame()
             self.display_image(self.file_name, original=True)
 
     def compress(self):
@@ -62,11 +66,24 @@ class MyGUI:
     def decompress(self):
         self.decompressed_path = os.path.join(self.file_name.split('.')[0] + '_decompressed.jpg')
         print(self.decompressed_path)
+
         # Decompress the image
         decompressor = Decompressor(self.bin_path)
         decompressor.decompress(self.decompressed_path)
+
         # Display image
         self.display_image(self.decompressed_path, original=False)
+
+        # Display compression ratio
+        original_size = os.path.getsize(self.file_name)
+        compressed_size = os.path.getsize(self.bin_path)
+        compression_percentage = 0
+        if original_size > 0:
+            compression_percentage = 100 * (1 - (compressed_size / original_size))
+        print(compression_percentage)
+        self.ratio_label.config(text=f"reduction in size: {compression_percentage:2f}%")
+
+
 
     def resize_image(self, image, max_size):
         original_width, original_height = image.size
@@ -82,7 +99,7 @@ class MyGUI:
 
     def display_image(self, path, original):
         image = Image.open(path)
-        image = self.resize_image(image, 300)
+        image = self.resize_image(image, 200)
         photo = ImageTk.PhotoImage(image)
 
         if original:
@@ -94,4 +111,13 @@ class MyGUI:
             self.dec_image_label.config(image=self.dec_photo)
             self.dec_image_label.image = self.dec_photo
 
+    def reset_image_frame(self):
+        self.original_image_label.config(image='')
+        self.dec_image_label.config(image='')
+        self.original_photo = None
+        self.dec_photo = None
+        self.decompressed_path = None
+        self.bin_path = None
+
+# Instantiate the GUI
 app = MyGUI()
